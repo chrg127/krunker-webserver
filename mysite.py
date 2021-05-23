@@ -13,39 +13,6 @@ class Page:
         with open(filename) as f:
             self.contents = f.read()
 
-HEAD_TEMPLATE = """
-    <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        .sidenav {
-            height: 100%;
-            width: 240px;
-            position: fixed;
-            z-index: 1;
-            top: 0;
-            left: 0;
-            background-color: #111;
-            overflow-x: hidden;
-            padding-top: 20px;
-        }
-
-        .sidenav a {
-            padding: 6px 8px 6px 16px;
-            text-decoration: none;
-            font-size: 25px;
-            color: #818181;
-            display: block;
-        }
-
-        .sidenav a:hover {
-            color: #f1f1f1;
-        }
-
-        .main {
-            margin-left: 240px;
-            padding: 0px 10px;
-        }
-    </style>
-"""
 PAGE_DIR = "templates/"
 pagetab = {
     "index.html"    : Page("Home",      PAGE_DIR + "index.html",    PageAccess.USER_GUEST),
@@ -54,6 +21,12 @@ pagetab = {
     "form.html"     : Page("Form",      PAGE_DIR + "form.html",     PageAccess.USER_GUEST),
     "login.html"    : Page("Login",     PAGE_DIR + "login.html",    PageAccess.GUEST_ONLY),
 }
+
+def load_page(url):
+    with open(PAGE_DIR + url, "r") as f:
+        return f.read()
+
+HEAD_TEMPLATE = load_page("head.html")
 
 def make_div(divclass, content):
     return "<div class=\"" + divclass + "\">\n" + content + "\n</div>\n"
@@ -86,7 +59,3 @@ def create_page(url, username):
         out.write(make_div("main", page_content))
         out.write("""   </body>
                     </html>""")
-
-def load_page(url):
-    with open(PAGE_DIR + url, "r") as f:
-        return f.read()
