@@ -30,14 +30,36 @@ GETREQ_FILENAME = "files/requests_get.txt"
 POSTREQ_FILENAME = "files/requests_post.txt"
 USERDB_FILENAME = "files/users.txt"
 
-# load and parse a key-value textual database
-def load_kv(pathname):
+class UserInfo:
+    def __init__(self, name, password, kr, guns):
+        self.name = name
+        self.password = password
+        self.kr = kr
+        self.guns = guns
+
+def load_user_db(pathname):
+    def parse_guns(gunstr):
+        if gunstr == "":
+            return []
+        return gunstr.split(',')
     db = {}
     with open(pathname) as f:
         for line in f:
-            usr, passw = line.strip().split('=', 1)
-            db[usr] = passw
+            user, password, kr, gunstr = line.strip().split('=', 4)
+            db[user] = UserInfo(user, password, kr, parse_guns(gunstr))
     return db
+
+def write_user_db(db, pathname):
+    with open(pathname, "w") as out:
+        for key in db:
+            user = db[key]
+            out.write(user.name + '=' + user.password + '=' + user.kr + '=')
+            for i in range(0, len(user.guns) - 1):
+                out.write(user.guns[i] + ',')
+            out.write(user.guns[len(user.guns)-1])
+            out.write('\n')
+
+user_db = load_user_db(USERDB_FILENAME)
 
 # used to keep together username and ip address
 class User:
@@ -45,19 +67,19 @@ class User:
         self.name = name
         self.ipaddr = ipaddr
 
+logged_users = {}
+
 # request handler class
 class HospistalRequestHandler(http.server.SimpleHTTPRequestHandler):
-    user_db = load_kv(USERDB_FILENAME)
-    logged_users = {}
 
     def login_handler(self, content):
         username = content.getvalue("username")
         password = content.getvalue("password")
-        if username not in self.user_db or self.user_db[username] != password:
+        if username not in user_db or user_db[username].password != password:
             return mysite.load_page("loginbad.html")
         ipaddr = self.client_address[0]
-        if ipaddr not in self.logged_users:
-            self.logged_users[ipaddr] = User(username, ipaddr)
+        if ipaddr not in logged_users:
+            logged_users[ipaddr] = User(username, ipaddr)
         return mysite.load_page("logingood.html")
 
     post_handlers = {
@@ -68,8 +90,8 @@ class HospistalRequestHandler(http.server.SimpleHTTPRequestHandler):
     def create_dynamic(self, pageurl):
         ip = self.client_address[0]
         username = None
-        if ip in self.logged_users:
-            username = self.logged_users[ip].name
+        if ip in logged_users:
+            username = logged_users[ip].name
         mysite.create_page(pageurl, username)
 
     def do_GET(self):
@@ -111,6 +133,7 @@ def main():
     def sighandler(num, frame):
         print("exiting server (ctrl+c)")
         httpd.server_close()
+        write_user_db(users, USERDB_FILENAME)
         sys.exit(0)
     signal.signal(signal.SIGINT, sighandler)
 
@@ -119,9 +142,10 @@ def main():
         httpd.serve_forever()
     except:
         httpd.server_close()
+        write_user_db(user_db, USERDB_FILENAME)
 
 def test():
-    mysite.create_page("index.html", "viroli mirko")
+    pass
 
 # test()
 if __name__ == "__main__":
