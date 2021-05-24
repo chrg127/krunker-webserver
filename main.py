@@ -46,14 +46,14 @@ def load_user_db(pathname):
     with open(pathname) as f:
         for line in f:
             user, password, kr, gunstr = line.strip().split('=', 4)
-            db[user] = UserInfo(user, password, kr, parse_guns(gunstr))
+            db[user] = UserInfo(user, password, int(kr), parse_guns(gunstr))
     return db
 
 def write_user_db(db, pathname):
     with open(pathname, "w") as out:
         for key in db:
             user = db[key]
-            out.write(user.name + '=' + user.password + '=' + user.kr + '=')
+            out.write(user.name + '=' + user.password + '=' + str(user.kr) + '=')
             for i in range(0, len(user.guns) - 1):
                 out.write(user.guns[i] + ',')
             out.write(user.guns[len(user.guns)-1])
@@ -82,8 +82,16 @@ class HospistalRequestHandler(http.server.SimpleHTTPRequestHandler):
             logged_users[ipaddr] = User(username, ipaddr)
         return mysite.load_page("logingood.html")
 
+    def kr_handler(self, content):
+        amount = int(content.getvalue("num"))
+        user = logged_users[self.client_address[0]]
+        user_db[user.name].kr += amount
+        print()
+        return "hello"
+
     post_handlers = {
         "/login.html" : login_handler,
+        "/getkr.html" : kr_handler,
     }
 
     # creates a dynamic page. assumes pageurl is a valid url.
@@ -133,7 +141,7 @@ def main():
     def sighandler(num, frame):
         print("exiting server (ctrl+c)")
         httpd.server_close()
-        write_user_db(users, USERDB_FILENAME)
+        write_user_db(user_db, USERDB_FILENAME)
         sys.exit(0)
     signal.signal(signal.SIGINT, sighandler)
 

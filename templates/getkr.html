@@ -1,1 +1,17 @@
+<script>
+    function make_kr() {
+        num = Math.floor(Math.random() * 30)
+        window.alert("You have made " + num + " KR!")
+        // thanks to the internet gods:
+        // https://stackoverflow.com/questions/692196/post-request-javascript
+        var url = "/getkr.html"
+        var params = "num=" + num
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.send(params);
+    }
+</script>
+
 <p>Get some KR!</p>
+<button onclick="make_kr()">Make some KR!</button>
