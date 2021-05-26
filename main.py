@@ -21,21 +21,22 @@ seguenti:
 import sys
 import signal
 import socketserver, http.server, cgi
+from dataclasses import dataclass
 
 import mysite
 
-# constants
+# Constants.
 PORT = 8000
 GETREQ_FILENAME = "files/requests_get.txt"
 POSTREQ_FILENAME = "files/requests_post.txt"
 USERDB_FILENAME = "files/users.txt"
 
+@dataclass
 class UserInfo:
-    def __init__(self, name, password, kr, guns):
-        self.name = name
-        self.password = password
-        self.kr = kr
-        self.guns = guns
+    name: str
+    password: str
+    kr: int
+    guns: list
 
 def load_user_db(pathname):
     def parse_guns(gunstr):
@@ -61,83 +62,105 @@ def write_user_db(db, pathname):
 
 user_db = load_user_db(USERDB_FILENAME)
 
-# used to keep together username and ip address
-class User:
-    def __init__(self, name, ipaddr):
-        self.name = name
-        self.ipaddr = ipaddr
+class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
 
-logged_users = {}
+    @dataclass
+    class LoggedUser:
+        name: str
+        ipaddr: str
 
-# request handler class
-class HospistalRequestHandler(http.server.SimpleHTTPRequestHandler):
+    logged_users = {}
 
+    # Handler for the POST method in the login page.
+    # Checks if the submitted values are valid by searching
+    # the database (user_db)
     def login_handler(self, content):
         username = content.getvalue("username")
         password = content.getvalue("password")
         if username not in user_db or user_db[username].password != password:
-            return mysite.load_page("loginbad.html")
+            return mysite.load_page_cached("loginbad.html")
         ipaddr = self.client_address[0]
-        if ipaddr not in logged_users:
-            logged_users[ipaddr] = User(username, ipaddr)
-        return mysite.load_page("logingood.html")
+        if ipaddr not in self.logged_users:
+            self.logged_users[ipaddr] = self.LoggedUser(username, ipaddr)
+        return mysite.load_page_cached("logingood.html")
 
+    # Handler for POST function in the "play" page.
+    # It simply adds an amount defined by the page to the user.
+    # Since this is a login-only page, we don't need to check whether
+    # self.client_address is inside logged_users.
     def kr_handler(self, content):
         amount = int(content.getvalue("num"))
-        user = logged_users[self.client_address[0]]
+        user = self.logged_users[self.client_address[0]]
         user_db[user.name].kr += amount
-        print()
-        return "hello"
+        return ""
 
     post_handlers = {
         "/login.html" : login_handler,
         "/getkr.html" : kr_handler,
     }
 
-    # creates a dynamic page. assumes pageurl is a valid url.
+    # Creates a dynamic page. Assumes pageurl is a valid url.
     def create_dynamic(self, pageurl):
         ip = self.client_address[0]
-        username = None
-        if ip in logged_users:
-            username = logged_users[ip].name
-        mysite.create_page(pageurl, username)
+        username = self.logged_users[ip].name if ip in self.logged_users else None
+        return mysite.create_page(pageurl, username)
 
+    # Handler for any GET functions.
     def do_GET(self):
+        # Log any GET made.
         with open(GETREQ_FILENAME, "a") as f:
             f.write("GET request\n")
             f.write("Path: " + str(self.path) + '\n')
             f.write("Headers:\n" + str(self.headers))
 
+        # Make sure the user gets redirected to the index page when
+        # visiting the root.
         if self.path == "/":
             self.path = "/index.html"
 
+        # Is the page we're visiting a dynamic page?
         if self.path[1:] in mysite.pagetab:
-            self.create_dynamic(self.path[1:])
+            res = self.create_dynamic(self.path[1:])
+            # Also check for privilege - we don't want a guest seeing a user page!
+            if not res:
+                mysite.copy_page("noaccess.html")
+                self.path = "/noaccess.html"
 
         http.server.SimpleHTTPRequestHandler.do_GET(self)
 
+    # Handler for any POST functions.
     def do_POST(self):
+        # Log any POST made.
         with open(POSTREQ_FILENAME, "a") as f:
             f.write("POST request\n")
             f.write("Path: " + str(self.path) + '\n')
             f.write("Headers:\n" + str(self.headers))
+
+        # Parse content using cgi.
         content = cgi.FieldStorage(
             fp = self.rfile,
             headers = self.headers,
             environ = { 'REQUEST_METHOD' : 'POST' }
         )
+
+        # Direct handling of the content to an appropiately defined function.
+        # This is done using a function table.
         handler = self.post_handlers[self.path]
+
+        # Send back whatever the handler returned.
         output = handler(self, content)
         self.send_response(200)
         self.end_headers()
         self.wfile.write(bytes(output, "utf-8"))
 
 def main():
+    # Use ThreadingTCPServer to handle multiple connections.
     socketserver.ThreadingTCPServer.allow_reuse_address = True
-    httpd = socketserver.ThreadingTCPServer(("", PORT), HospistalRequestHandler)
+    httpd = socketserver.ThreadingTCPServer(("", PORT), StoreRequestHandler)
     httpd.daemon_threads = True
     httpd.allow_reuse_address = True
 
+    # Handles <CTRL-C>
     def sighandler(num, frame):
         print("exiting server (ctrl+c)")
         httpd.server_close()
@@ -145,7 +168,7 @@ def main():
         sys.exit(0)
     signal.signal(signal.SIGINT, sighandler)
 
-    print("serving at port", PORT)
+    print("serving at port:", PORT)
     try:
         httpd.serve_forever()
     except:
