@@ -2,6 +2,8 @@ import enum
 from dataclasses import dataclass
 import shutil
 
+import mydatabase
+
 class PageAccess(enum.Enum):
     USER_ONLY   = 1
     GUEST_ONLY  = 2
@@ -20,6 +22,7 @@ class Page:
         self.access = access
         self.contents_guest = get_content(filename_guest)
         self.contents_user  = get_content(filename_user)
+        self.load_fn = None
 
     def get_contents(self, access):
         if access == PageAccess.USER_ONLY:
@@ -70,10 +73,8 @@ def make_sidebar(access):
 # If the user doesn't have access to the page (for example, a guest visiting a
 # page only visitable by a user), then the function returns false.
 def create_page(url, username):
-    def logged_user_message(username):
-        if username == None:
-            return ""
-        return "<footer>Logged in as " + username + "</footer>"
+    def logged_msg(username):
+        return "<footer>Logged in as {}</footer>".format(username) if username != None else ""
 
     if url not in pagetab:
         return
@@ -82,6 +83,9 @@ def create_page(url, username):
     page_content = page.get_contents(access)
     if page_content == None:
         return False
+
+    if page.load_fn != None:
+        page_content += page.load_fn(username)
 
     with open(url, "w") as out:
         def wr(s): out.write(s + '\n')
@@ -93,9 +97,23 @@ def create_page(url, username):
         wr("    <body>")
         wr(make_div("sidenav", make_sidebar(access)))
         wr(make_div("main", page_content))
-        wr(make_div("foot", logged_user_message(username)))
+        wr(make_div("foot", logged_msg(username)))
         wr("    </body>")
         wr("</html>")
 
     return True
 
+def page_add_content(page, access, content):
+    try:
+        if access == PageAccess.USER_ONLY or access == PageAccess.USER_GUEST:
+            pagetab[page].contents_user += content
+        if access == PageAccess.GUEST_ONLY or access == PageAccess.USER_GUEST:
+            pagetab[page].contents_guest += content
+    except:
+        pass
+
+def page_on_GET(page, fn):
+    try:
+        pagetab[page].load_fn = fn
+    except:
+        pass

@@ -24,43 +24,14 @@ import socketserver, http.server, cgi
 from dataclasses import dataclass
 
 import mysite
+import mydatabase
 
 # Constants.
 PORT = 8000
 GETREQ_FILENAME = "files/requests_get.txt"
 POSTREQ_FILENAME = "files/requests_post.txt"
-USERDB_FILENAME = "files/users.txt"
 
-@dataclass
-class UserInfo:
-    name: str
-    password: str
-    kr: int
-    guns: list
-
-def load_user_db(pathname):
-    def parse_guns(gunstr):
-        if gunstr == "":
-            return []
-        return gunstr.split(',')
-    db = {}
-    with open(pathname) as f:
-        for line in f:
-            user, password, kr, gunstr = line.strip().split('=', 4)
-            db[user] = UserInfo(user, password, int(kr), parse_guns(gunstr))
-    return db
-
-def write_user_db(db, pathname):
-    with open(pathname, "w") as out:
-        for key in db:
-            user = db[key]
-            out.write(user.name + '=' + user.password + '=' + str(user.kr) + '=')
-            for i in range(0, len(user.guns) - 1):
-                out.write(user.guns[i] + ',')
-            out.write(user.guns[len(user.guns)-1])
-            out.write('\n')
-
-user_db = load_user_db(USERDB_FILENAME)
+user_db = mydatabase.UserDatabase(mydatabase.FILENAME)
 
 class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
 
@@ -94,9 +65,22 @@ class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
         user_db[user.name].kr += amount
         return ""
 
+    def shop_handler(self, content):
+        gunid    = int(content.getvalue("gun"))
+        guninfo  = mydatabase.guntab[gunid]
+        user     = self.logged_users[self.client_address[0]]
+        userinfo = user_db[user.name]
+        if gunid not in userinfo.guns:
+        #     userinfo.kr -= guninfo.cost
+        #     userinfo.guns += gunid
+            return mysite.load_page_cached("shopgood.html")
+        else:
+            return mysite.load_page_cached("shopbad.html")
+
     post_handlers = {
         "/login.html" : login_handler,
         "/getkr.html" : kr_handler,
+        "/shop.html"  : shop_handler,
     }
 
     # Creates a dynamic page. Assumes pageurl is a valid url.
@@ -153,6 +137,7 @@ class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(bytes(output, "utf-8"))
 
+
 def main():
     # Use ThreadingTCPServer to handle multiple connections.
     socketserver.ThreadingTCPServer.allow_reuse_address = True
@@ -164,19 +149,49 @@ def main():
     def sighandler(num, frame):
         print("exiting server (ctrl+c)")
         httpd.server_close()
-        write_user_db(user_db, USERDB_FILENAME)
+        user_db.write()
         sys.exit(0)
     signal.signal(signal.SIGINT, sighandler)
+
+    def make_gun_table():
+        res = "<table>"
+        for gun in mydatabase.guntab:
+            res += "    <tr>\n"
+            res += "        <td>{}</td>\n".format(gun.name)
+            res += "        <td><img src=\"{}\" alt=\"gunpic\"></td>\n".format(gun.image_path)
+            res += "        <td><button onclick=\"buy({})\">Buy</button></td>\n".format(gun.gid)
+            res += "    </tr>\n"
+        res += "</table>"
+        return res
+
+    mysite.page_add_content("shop.html", mysite.PageAccess.USER_GUEST, make_gun_table())
+
+    def get_stats(user):
+        if user not in user_db:
+            return "[invalid]"
+        userinfo = user_db[user]
+        res = "KR: {}\n<br>\nArmi:\n<br>\n".format(userinfo.kr)
+        res += "<table>"
+        for gun in userinfo.guns:
+            guninfo = mydatabase.guntab[gun]
+            res += "    <tr>\n"
+            res += "        <td>{}</td>\n".format(guninfo.name)
+            res += "        <td><img src=\"{}\" alt=\"gunpic\"></td>\n".format(guninfo.image_path)
+            res += "    </tr>\n"
+        res += "</table>"
+        return res
+
+    mysite.page_on_GET("stats.html", get_stats)
 
     print("serving at port:", PORT)
     try:
         httpd.serve_forever()
     except:
         httpd.server_close()
-        write_user_db(user_db, USERDB_FILENAME)
+        user_db.write()
 
-def test():
-    pass
+# def test():
+#     print(get_stats("viroli"))
 
 # test()
 if __name__ == "__main__":
