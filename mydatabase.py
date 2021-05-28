@@ -1,7 +1,5 @@
 from dataclasses import dataclass
 
-FILENAME = "files/users.txt"
-
 @dataclass
 class UserInfo:
     name: str
@@ -56,7 +54,4 @@ class UserDatabase(dict):
 
     def __setitem__(self, key, val):
         dict.__setitem__(self, key, val)
-
-def get_gun_info(gun):
-    return guntab[gun]
 

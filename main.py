@@ -4,18 +4,18 @@ Si immagini di dover realizzare un Web Server in Python per
 una azienda ospedaliera. I requisiti del Web Server sono i
 seguenti:
     - Il web server deve consentire l’accesso a più utenti in
-      contemporanea *
+      contemporanea
     - La pagina iniziale deve consentire di visualizzare la lista
       dei servizi erogati dall’azienda ospedaliera e per ogni
       servizio avere un link di riferimento ad una pagina
-      dedicata. *
+      dedicata.
     - L’interruzione da tastiera (o da console) dell’esecuzione
       del web server deve essere opportunamente gestita in
-      modo da liberare la risorsa socket. *
+      modo da liberare la risorsa socket.
     - Nella pagina principale dovrà anche essere presente un
-      link per il download di un file pdf da parte del browser *
+      link per il download di un file pdf da parte del browser.
     - Come requisito facoltativo si chiede di autenticare gli
-      utenti nella fase iniziale della connessione. *
+      utenti nella fase iniziale della connessione.
 """
 
 import sys
@@ -30,8 +30,9 @@ import mydatabase
 PORT = 8000
 GETREQ_FILENAME = "files/requests_get.txt"
 POSTREQ_FILENAME = "files/requests_post.txt"
+USERDB_FILENAME = "files/users.txt"
 
-user_db = mydatabase.UserDatabase(mydatabase.FILENAME)
+user_db = mydatabase.UserDatabase(USERDB_FILENAME)
 
 class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
 
@@ -64,16 +65,16 @@ class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def shop_handler(self, content):
         msg_nokr = """
-<h2>Acquisto non effettuato.</h2>
-<p>I tuoi KR non sono abbastanza!</p>
-<p>I tuoi KR: {}</p>
-<p>Costo dell'arma: {}</p>"""
+        <h2>Acquisto non effettuato.</h2>
+        <p>I tuoi KR non sono abbastanza!</p>
+        <p>I tuoi KR: {}</p>
+        <p>Costo dell'arma: {}</p>"""
         msg_ok = """
-<h2>Acquisto effettuato.</h2>
-<p>Nelle tue "stats" potrai vedere la tua nuova arma.</p>"""
+        <h2>Acquisto effettuato.</h2>
+        <p>Nelle tue "stats" potrai vedere la tua nuova arma.</p>"""
         msg_gotalready = """
-<h2>Acquisto non effettuato</h2>
-<p>Sembra che tu abbia già quest'arma.</p>"""
+        <h2>Acquisto non effettuato</h2>
+        <p>Sembra che tu abbia già quest'arma.</p>"""
         gunid    = int(content.getvalue("gun"))
         guninfo  = mydatabase.guntab[gunid]
         user     = self.logged_users[self.client_address[0]]
@@ -123,7 +124,6 @@ class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
             res = self.create_dynamic(self.path[1:])
             # Also check for privilege - we don't want a guest seeing a user page!
             if not res:
-                mysite.copy_page("noaccess.html")
                 self.path = "/noaccess.html"
 
         http.server.SimpleHTTPRequestHandler.do_GET(self)
@@ -135,8 +135,6 @@ class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
             f.write("POST request\n")
             f.write("Path: " + str(self.path) + '\n')
             f.write("Headers:\n" + str(self.headers))
-
-        # print(self.rfile.read(int(self.headers['Content-Length'])))
 
         # Parse content and send it to the handler function for the page.
         content = cgi.FieldStorage(
@@ -186,24 +184,25 @@ def main():
         res += "</table>"
         return res
 
-    mysite.page_add_content("shop.html", mysite.PageAccess.USER_GUEST, make_gun_table())
-
     def get_stats(user):
         if user not in user_db:
             return "[invalid]"
         userinfo = user_db[user]
-        res = "KR: {}\n<br>\nArmi:\n<br>\n".format(userinfo.kr)
-        res += "<table>"
+        res = "KR: {}\n<br>\nArmi:\n<br>\n<table>\n".format(userinfo.kr)
         for gun in userinfo.guns:
             guninfo = mydatabase.guntab[gun]
-            res += "    <tr>\n"
-            res += "        <td>{}</td>\n".format(guninfo.name)
-            res += "        <td><img src=\"{}\" alt=\"gunpic\"></td>\n".format(guninfo.image_path)
-            res += "    </tr>\n"
+            res += """
+        <tr>
+            <td>{}</td>
+            <td><img src="{}" alt="gunpic"></td>
+        </tr>
+            """.format(guninfo.name, guninfo.image_path)
         res += "</table>"
         return res
 
+    mysite.page_add_content("shop.html", mysite.PageAccess.USER_GUEST, make_gun_table())
     mysite.page_on_GET("stats.html", get_stats)
+    mysite.copy_page("noaccess.html")
 
     print("serving at port:", PORT)
     try:

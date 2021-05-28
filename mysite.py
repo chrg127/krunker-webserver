@@ -2,8 +2,6 @@ import enum
 from dataclasses import dataclass
 import shutil
 
-import mydatabase
-
 class PageAccess(enum.Enum):
     USER_ONLY   = 1
     GUEST_ONLY  = 2
@@ -44,45 +42,44 @@ pagetab = {
     "logout.html"   : Page("Logout",    None,                       PAGE_DIR + "logout.html",     PageAccess.USER_ONLY),
 }
 
-def load_page_cached(url):
+# Load a page's contents. On the first call the contents are fetched from disk,
+# afterwards they will stay in a cache (and therefore can be easily retrieved.
+def load_page_cached(path):
     global cache
     cache = {}
-    if url not in cache:
-        with open(PAGE_DIR + url, "r") as f:
-            cache[url] = f.read()
-    return cache[url]
+    if path not in cache:
+        with open(PAGE_DIR + path, "r") as f:
+            cache[path] = f.read()
+    return cache[path]
 
-def copy_page(url):
-    shutil.copyfile(PAGE_DIR + url, url)
-
-HEAD_TEMPLATE = load_page_cached("head.html")
-
-def make_div(divclass, content):
-    return "<div class=\"" + divclass + "\">\n" + content + "\n</div>"
-
-def make_sidebar(access):
-    sidebar = ""
-    for url in pagetab:
-        page = pagetab[url]
-        if page.access.value & access.value:
-            sidebar += "<a href=\"/" + url + "\">" + pagetab[url].name + "</a>\n"
-    return sidebar
+def copy_page(path):
+    shutil.copyfile(PAGE_DIR + path, path)
 
 # Create a dynamic page.
-#   url: name of the dynamic page, should end with .html.
+#   pathname: name of the dynamic page, should end with .html.
 #   username: name of the user that is accessing, or None for a "guest" user.
 # If the user doesn't have access to the page (for example, a guest visiting a
 # page only visitable by a user), then the function returns false.
-def create_page(url, username):
-    if url not in pagetab:
+def create_page(pathname, username):
+    HEAD_TEMPLATE = load_page_cached("head.html")
+    def make_sidebar(access, username):
+        sidebar = ""
+        for path in pagetab:
+            page = pagetab[path]
+            if page.access.value & access.value:
+                sidebar += """<a href="/{}">{}</a>\n""".format(path, page.name)
+        sidebar += "<p>{}</p>\n".format(username if username != None else "")
+        return sidebar
+
+    if pathname not in pagetab:
         return False
     access = PageAccess.GUEST_ONLY if username == None else PageAccess.USER_ONLY
-    page = pagetab[url]
+    page = pagetab[pathname]
     page_content = page.get_contents(access)
     if page_content == None:
         return False
 
-    with open(url, "w") as out:
+    with open(pathname, "w") as out:
         text = """
 <html>
     </head>
@@ -97,20 +94,19 @@ def create_page(url, username):
             {}
             {}
         </div>
-        <div class="foot">
-            {}
-        </div>
     </body>
 </html>""".format(
         page.name, HEAD_TEMPLATE,
-        make_sidebar(access),
+        make_sidebar(access, username),
         page_content,
-        page.load_fn(username) if page.load_fn != None else "",
-        "<footer>Logged in as {}</footer>".format(username) if username != None else "")
+        page.load_fn(username) if page.load_fn != None else "")
+        #"<footer>Logged in as {}</footer>".format(username) if username != None else "")
         out.write(text)
 
     return True
 
+# Adds content to a page after it is loaded from the file. The content
+# is not written to file.
 def page_add_content(page, access, content):
     try:
         if access == PageAccess.USER_ONLY or access == PageAccess.USER_GUEST:
@@ -120,8 +116,10 @@ def page_add_content(page, access, content):
     except:
         pass
 
+# Run a function "fn" when GETting a page.
 def page_on_GET(page, fn):
     try:
         pagetab[page].load_fn = fn
     except:
         pass
+
