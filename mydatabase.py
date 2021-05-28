@@ -18,14 +18,14 @@ class Gun:
 
 IMAGEDIR = "images/"
 guntab = [
-    Gun(0, "Akimbo Uiz",     IMAGEDIR + "akimbo.png",        0),
-    Gun(1, "Knife",          IMAGEDIR + "knife.png",         0),
-    Gun(2, "Machine Gun",    IMAGEDIR + "machinegun.png",    0),
-    Gun(3, "Pistol",         IMAGEDIR + "pistol.png",        0),
-    Gun(4, "Revolver",       IMAGEDIR + "revolver.png",      0),
-    Gun(5, "Assault Rifle",  IMAGEDIR + "rifle.png",         0),
-    Gun(6, "Shotgun",        IMAGEDIR + "shotgun.png",       0),
-    Gun(7, "Sniper Rifle",   IMAGEDIR + "sniper.png",        0),
+    Gun(0, "Akimbo Uzi",     IMAGEDIR + "akimbo.png",        50),
+    Gun(1, "Knife",          IMAGEDIR + "knife.png",         25),
+    Gun(2, "Machine Gun",    IMAGEDIR + "machinegun.png",    100),
+    Gun(3, "Pistol",         IMAGEDIR + "pistol.png",        10000),
+    Gun(4, "Revolver",       IMAGEDIR + "revolver.png",      150),
+    Gun(5, "Assault Rifle",  IMAGEDIR + "rifle.png",         200),
+    Gun(6, "Shotgun",        IMAGEDIR + "shotgun.png",       300),
+    Gun(7, "Sniper Rifle",   IMAGEDIR + "sniper.png",        500),
 ]
 
 class UserDatabase(dict):

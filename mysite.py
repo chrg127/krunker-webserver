@@ -41,6 +41,7 @@ pagetab = {
     "getkr.html"    : Page("Play",      None,                       PAGE_DIR + "getkr.html",      PageAccess.USER_ONLY),
     "shop.html"     : Page("Shop",      None,                       PAGE_DIR + "shop.html",       PageAccess.USER_ONLY),
     "stats.html"    : Page("See stats", None,                       PAGE_DIR + "stats.html",      PageAccess.USER_ONLY),
+    "logout.html"   : Page("Logout",    None,                       PAGE_DIR + "logout.html",     PageAccess.USER_ONLY),
 }
 
 def load_page_cached(url):
@@ -73,33 +74,40 @@ def make_sidebar(access):
 # If the user doesn't have access to the page (for example, a guest visiting a
 # page only visitable by a user), then the function returns false.
 def create_page(url, username):
-    def logged_msg(username):
-        return "<footer>Logged in as {}</footer>".format(username) if username != None else ""
-
     if url not in pagetab:
-        return
+        return False
     access = PageAccess.GUEST_ONLY if username == None else PageAccess.USER_ONLY
     page = pagetab[url]
     page_content = page.get_contents(access)
     if page_content == None:
         return False
 
-    if page.load_fn != None:
-        page_content += page.load_fn(username)
-
     with open(url, "w") as out:
-        def wr(s): out.write(s + '\n')
-        wr("<html>")
-        wr("    </head>")
-        wr("    <title>Krunker Store: " + page.name + "</title>")
-        wr(HEAD_TEMPLATE)
-        wr("    </head>")
-        wr("    <body>")
-        wr(make_div("sidenav", make_sidebar(access)))
-        wr(make_div("main", page_content))
-        wr(make_div("foot", logged_msg(username)))
-        wr("    </body>")
-        wr("</html>")
+        text = """
+<html>
+    </head>
+        <title>Krunker Store: {}</title>
+        {}
+    </head>
+    <body>
+        <div class="sidenav">
+            {}
+        </div>
+        <div class="main">
+            {}
+            {}
+        </div>
+        <div class="foot">
+            {}
+        </div>
+    </body>
+</html>""".format(
+        page.name, HEAD_TEMPLATE,
+        make_sidebar(access),
+        page_content,
+        page.load_fn(username) if page.load_fn != None else "",
+        "<footer>Logged in as {}</footer>".format(username) if username != None else "")
+        out.write(text)
 
     return True
 

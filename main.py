@@ -42,9 +42,8 @@ class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     logged_users = {}
 
-    # Handler for the POST method in the login page.
-    # Checks if the submitted values are valid by searching
-    # the database (user_db)
+    # Handler for the POST method in the login page. Checks if the submitted values
+    # are valid by searching the database (user_db).
     def login_handler(self, content):
         username = content.getvalue("username")
         password = content.getvalue("password")
@@ -55,10 +54,8 @@ class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.logged_users[ipaddr] = self.LoggedUser(username, ipaddr)
         return mysite.load_page_cached("logingood.html")
 
-    # Handler for POST function in the "play" page.
-    # It simply adds an amount defined by the page to the user.
-    # Since this is a login-only page, we don't need to check whether
-    # self.client_address is inside logged_users.
+    # Handler for POST function in the "play" page. It simply adds an amount defined by the page to the user.
+    # Since this is a login-only page, we don't need to check whether self.client_address is inside logged_users.
     def kr_handler(self, content):
         amount = int(content.getvalue("num"))
         user = self.logged_users[self.client_address[0]]
@@ -66,21 +63,40 @@ class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
         return ""
 
     def shop_handler(self, content):
+        msg_nokr = """
+<h2>Acquisto non effettuato.</h2>
+<p>I tuoi KR non sono abbastanza!</p>
+<p>I tuoi KR: {}</p>
+<p>Costo dell'arma: {}</p>"""
+        msg_ok = """
+<h2>Acquisto effettuato.</h2>
+<p>Nelle tue "stats" potrai vedere la tua nuova arma.</p>"""
+        msg_gotalready = """
+<h2>Acquisto non effettuato</h2>
+<p>Sembra che tu abbia già quest'arma.</p>"""
         gunid    = int(content.getvalue("gun"))
         guninfo  = mydatabase.guntab[gunid]
         user     = self.logged_users[self.client_address[0]]
         userinfo = user_db[user.name]
-        if gunid not in userinfo.guns:
-        #     userinfo.kr -= guninfo.cost
-        #     userinfo.guns += gunid
-            return mysite.load_page_cached("shopgood.html")
+        if userinfo.kr < guninfo.cost:
+            return msg_nokr.format(userinfo.kr, guninfo.cost) + mysite.load_page_cached("shopreply.html")
+        elif gunid in userinfo.guns:
+            return msg_gotalready + mysite.load_page_cached("shopreply.html")
         else:
-            return mysite.load_page_cached("shopbad.html")
+            userinfo.kr -= guninfo.cost
+            userinfo.guns.append(gunid)
+            return msg_ok + mysite.load_page_cached("shopreply.html")
+
+    def logout_handler(self, content):
+        ipaddr = self.client_address[0]
+        del self.logged_users[ipaddr]
+        return mysite.load_page_cached("logoutreply.html")
 
     post_handlers = {
         "/login.html" : login_handler,
         "/getkr.html" : kr_handler,
         "/shop.html"  : shop_handler,
+        "/logout.html" : logout_handler,
     }
 
     # Creates a dynamic page. Assumes pageurl is a valid url.
@@ -120,19 +136,18 @@ class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
             f.write("Path: " + str(self.path) + '\n')
             f.write("Headers:\n" + str(self.headers))
 
-        # Parse content using cgi.
+        # print(self.rfile.read(int(self.headers['Content-Length'])))
+
+        # Parse content and send it to the handler function for the page.
         content = cgi.FieldStorage(
             fp = self.rfile,
             headers = self.headers,
             environ = { 'REQUEST_METHOD' : 'POST' }
         )
-
-        # Direct handling of the content to an appropiately defined function.
-        # This is done using a function table.
         handler = self.post_handlers[self.path]
+        output = handler(self, content)
 
         # Send back whatever the handler returned.
-        output = handler(self, content)
         self.send_response(200)
         self.end_headers()
         self.wfile.write(bytes(output, "utf-8"))
@@ -156,11 +171,18 @@ def main():
     def make_gun_table():
         res = "<table>"
         for gun in mydatabase.guntab:
-            res += "    <tr>\n"
-            res += "        <td>{}</td>\n".format(gun.name)
-            res += "        <td><img src=\"{}\" alt=\"gunpic\"></td>\n".format(gun.image_path)
-            res += "        <td><button onclick=\"buy({})\">Buy</button></td>\n".format(gun.gid)
-            res += "    </tr>\n"
+            res += """
+    <tr>
+        <td>{}</td>
+        <td><img src="{}" alt=gunpic></td>
+        <td>Costo: {}</td>
+        <td>
+            <form action="" method="post">
+                <button type="submit" name="gun" value="{}">Compra</button>
+            </form>
+        </td>
+    </tr>
+            """.format(gun.name, gun.image_path, gun.cost, gun.gid)
         res += "</table>"
         return res
 
@@ -190,9 +212,5 @@ def main():
         httpd.server_close()
         user_db.write()
 
-# def test():
-#     print(get_stats("viroli"))
-
-# test()
 if __name__ == "__main__":
     main()
