@@ -1,5 +1,4 @@
 import enum
-from dataclasses import dataclass
 import shutil
 
 class PageAccess(enum.Enum):
@@ -36,9 +35,9 @@ pagetab = {
     "index.html"    : Page("Home",      PAGE_DIR + "index.html",    PAGE_DIR + "index_user.html", PageAccess.USER_GUEST),
     "about.html"    : Page("About",     PAGE_DIR + "about.html",    PAGE_DIR + "about.html",      PageAccess.USER_GUEST),
     "login.html"    : Page("Login",     PAGE_DIR + "login.html",    None,                         PageAccess.GUEST_ONLY),
-    "getkr.html"    : Page("Play",      None,                       PAGE_DIR + "getkr.html",      PageAccess.USER_ONLY),
+    "getkr.html"    : Page("Gioca",     None,                       PAGE_DIR + "getkr.html",      PageAccess.USER_ONLY),
     "shop.html"     : Page("Shop",      None,                       PAGE_DIR + "shop.html",       PageAccess.USER_ONLY),
-    "stats.html"    : Page("See stats", None,                       PAGE_DIR + "stats.html",      PageAccess.USER_ONLY),
+    "stats.html"    : Page("Statistiche", None,                     PAGE_DIR + "stats.html",      PageAccess.USER_ONLY),
     "logout.html"   : Page("Logout",    None,                       PAGE_DIR + "logout.html",     PageAccess.USER_ONLY),
 }
 
@@ -55,20 +54,23 @@ def load_page_cached(path):
 def copy_page(path):
     shutil.copyfile(PAGE_DIR + path, path)
 
+
+_HEAD_TEMPLATE = load_page_cached("head.html")
+
 # Create a dynamic page.
 #   pathname: name of the dynamic page, should end with .html.
 #   username: name of the user that is accessing, or None for a "guest" user.
 # If the user doesn't have access to the page (for example, a guest visiting a
 # page only visitable by a user), then the function returns false.
 def create_page(pathname, username):
-    HEAD_TEMPLATE = load_page_cached("head.html")
     def make_sidebar(access, username):
         sidebar = ""
         for path in pagetab:
             page = pagetab[path]
             if page.access.value & access.value:
                 sidebar += """<a href="/{}">{}</a>\n""".format(path, page.name)
-        sidebar += "<p>{}</p>\n".format(username if username != None else "")
+        sidebar += """<a href="/files/info.pdf">Info (PDF)</a>"""
+        sidebar += "<p>{}</p>\n".format("Logged as " + username if username != None else "")
         return sidebar
 
     if pathname not in pagetab:
@@ -96,11 +98,10 @@ def create_page(pathname, username):
         </div>
     </body>
 </html>""".format(
-        page.name, HEAD_TEMPLATE,
+        page.name, _HEAD_TEMPLATE,
         make_sidebar(access, username),
         page_content,
         page.load_fn(username) if page.load_fn != None else "")
-        #"<footer>Logged in as {}</footer>".format(username) if username != None else "")
         out.write(text)
 
     return True

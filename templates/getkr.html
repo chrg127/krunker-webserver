@@ -1,7 +1,7 @@
 <script>
     function make_kr() {
         num = Math.floor(Math.random() * 30)
-        elem = document.getElementById("krp").innerHTML = "You have made " + num + " KR!"
+        elem = document.getElementById("krp").innerHTML = "Hai vinto " + num + " KR!"
         // thanks to the internet gods:
         // https://stackoverflow.com/questions/692196/post-request-javascript
         var url = "/getkr.html"
@@ -13,6 +13,6 @@
     }
 </script>
 
-<p>Get some KR!</p>
-<button onclick="make_kr()">Make some KR!</button>
+<p>Gioca e colleziona KR!</p>
+<button onclick="make_kr()">Gioca</button>
 <p id="krp"></p>

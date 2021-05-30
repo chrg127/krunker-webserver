@@ -9,21 +9,20 @@ class UserInfo:
 
 @dataclass
 class Gun:
-    gid: int
     name: str
     image_path: str
     cost: int
 
 IMAGEDIR = "images/"
 guntab = [
-    Gun(0, "Akimbo Uzi",     IMAGEDIR + "akimbo.png",        50),
-    Gun(1, "Knife",          IMAGEDIR + "knife.png",         25),
-    Gun(2, "Machine Gun",    IMAGEDIR + "machinegun.png",    100),
-    Gun(3, "Pistol",         IMAGEDIR + "pistol.png",        10000),
-    Gun(4, "Revolver",       IMAGEDIR + "revolver.png",      150),
-    Gun(5, "Assault Rifle",  IMAGEDIR + "rifle.png",         200),
-    Gun(6, "Shotgun",        IMAGEDIR + "shotgun.png",       300),
-    Gun(7, "Sniper Rifle",   IMAGEDIR + "sniper.png",        500),
+    Gun("Akimbo Uzi",     IMAGEDIR + "akimbo.png",        50),
+    Gun("Knife",          IMAGEDIR + "knife.png",         25),
+    Gun("Machine Gun",    IMAGEDIR + "machinegun.png",    100),
+    Gun("Pistol",         IMAGEDIR + "pistol.png",        10000),
+    Gun("Revolver",       IMAGEDIR + "revolver.png",      150),
+    Gun("Assault Rifle",  IMAGEDIR + "rifle.png",         200),
+    Gun("Shotgun",        IMAGEDIR + "shotgun.png",       300),
+    Gun("Sniper Rifle",   IMAGEDIR + "sniper.png",        500),
 ]
 
 class UserDatabase(dict):
@@ -44,9 +43,10 @@ class UserDatabase(dict):
             for key in self.__iter__():
                 user = self.__getitem__(key)
                 out.write(user.name + '=' + user.password + '=' + str(user.kr) + '=')
-                for i in range(0, len(user.guns) - 1):
-                    out.write(str(user.guns[i]) + ',')
-                out.write(str(user.guns[len(user.guns)-1]))
+                if len(user.guns) != 0:
+                    for i in range(0, len(user.guns) - 1):
+                        out.write(str(user.guns[i]) + ',')
+                    out.write(str(user.guns[len(user.guns)-1]))
                 out.write('\n')
 
     def __getitem__(self, key):
