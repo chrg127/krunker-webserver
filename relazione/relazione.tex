@@ -30,6 +30,20 @@ Il web server ha anche un sistema per servire pagine dinamiche, un sistema di au
 
 \chapter{Servizi del sito}
 
+\begin{figure}[h]
+\centering{}
+\includegraphics[width=\textwidth]{home1.png}
+\caption{La schermata principale per gli ospiti.}
+\label{img:home_guest}
+\end{figure}
+
+\begin{figure}[h]
+\centering{}
+\includegraphics[width=\textwidth]{home2.png}
+\caption{La schermata principale per gli utenti, che mostra anche i principali servizi del sito.}
+\label{img:home_user}
+\end{figure}
+
 Prima di vedere i servizi del sito, gli utenti dovranno fare il login. I servizi che il sito mette a disposizione si possono trovare tutti nella \textit{sidebar} e sono i seguenti:
 \begin{itemize}
 \item Gioca: qui è dove gli utenti possono giocare e collezionare più KR. Normalmente in una pagina del genere ci dovrebbe essere un gioco completo; dato che lo scopo principale del progetto non è creare un gioco, ma bensì creare un web server, si è optato per una semplice pagina con un bottone. Il bottone manda una richiesta POST al server, in cui nel contenuto si potrà trovare il numero di KR, generato casualmente, da aggiungere al numero di KR collezionati dall'utente.
@@ -44,6 +58,13 @@ Nella \textit{sidebar} si possono anche trovare un link ad un PDF con alcune inf
 \chapter{Struttura del Web Server}
 
 Il progetto è diviso in tre moduli: un modulo per il server, un modulo per il database degli utenti e un modulo per le pagine dinamiche. Non c'è una parte di client, dato che per un web server il client di solito è il web browser dell'utente.
+
+\begin{figure}[h]
+\centering{}
+\includegraphics[]{uml1.png}
+\caption{La struttura dei moduli.}
+\label{img:uml_modules}
+\end{figure}
 
 \section{Server}
 
@@ -93,5 +114,12 @@ Il modulo del database implementa un database molto semplice per gli utenti e i 
 L'approccio che si è utilizzato è di usare un file per contenere i dati degli utenti, che viene letto quando il server viene fatto partire, e viene scritto sia quando viene fatto un aggiornamento alla struttura dati nel programma, sia quando il server viene chiuso. La struttura dati per il database è una semplice classe, chiamata \texttt{UserDatabase}, che eredita da una classe built-in di Python, \texttt{dict}, e che offre un metodo per salvare il database su file. Il database quindi opera come un dizionario.
 
 Nel modulo del database si possono anche trovare informazioni sulle armi. Dato che queste informazioni sono read-only, non c'è bisogno di avere una gestione avanzata e quindi si è optato per un semplice array.
+
+\begin{figure}[h]
+\centering{}
+\includegraphics[]{uml2.png}
+\caption{La struttura finale del progetto.}
+\label{img:uml_classes}
+\end{figure}
 
 \end{document}
