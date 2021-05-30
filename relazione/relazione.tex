@@ -21,10 +21,11 @@
 
 Il progetto consiste in un web server fatto per uno store immaginario, basato sul gioco online \textit{Krunker.io}. Gli utenti che si connettono al sito possono: 
 \begin{itemize}
-\item Prendere \textit{KR}, la moneta immaginaria del gioco;
+\item Collezionare \textit{KR}, la moneta immaginaria del gioco;
 \item Possono comprare nuove armi del gioco usando i KR;
 \item Possono vedere le loro statistiche (KR e armi già comprate).
 \end{itemize}
+
 Il web server ha anche un sistema per servire pagine dinamiche, un sistema di autenticazione degli utenti e un concetto molto semplice di sessione.
 
 \chapter{Servizi del sito}
@@ -36,8 +37,9 @@ Prima di vedere i servizi del sito, gli utenti dovranno fare il login. I servizi
 \item Statistiche: in questa pagina ogni utente troverà le proprie statistiche, che riguardano l'ammontare di KR e le armi già comprate. Tutte queste informazioni vengono prelevate dal server ogni volta che arriva una richiesta GET per questa pagina.
 \end{itemize}
 
-Nella \textit{sidebar} si possono anche trovare un link ad un PDF con alcune informazioni sul sito e un link per le pagine di login/logout.
+Nella \textit{sidebar} si possono anche trovare un link ad un PDF con alcune informazioni sul sito e un link per le pagine di login/logout. Anche le pagine di login/logout mandano una richiesta POST al server: anche se forse per le altre pagine bastava fare una richiesta GET, per il login è necessario fare richieste POST, dato che con le GET le informazioni sulla password verrebbero messe in chiaro.
 
+È da notare che nessuna pagina manda un nome utente nelle sue richieste al server: questo perchè il server usa l'indirizzo IP dell'utente per riconoscerlo.
 
 \chapter{Struttura del Web Server}
 
@@ -60,8 +62,8 @@ La classe \texttt{StoreRequestHandler}, essendo il gestore delle richieste, si o
 \begin{itemize}
 \item Servire pagine dinamiche: questo lo fa utilizzando il modulo del sito. In generale, quando il gestore si accorge che l'utente sta chiedendo una pagina dinamica, allora creerà una nuova pagina e servirà quella.
 \item Gestire le richieste POST: alcune pagine fanno richieste POST specifiche per quella pagina, ad esempio la pagina di login invia informazioni riguardanti il nome utente e la password. Il gestore, per ogni pagina che fa richieste POST, ha una funzione dedicata a gestire la richiesta.
-\item Fare il log delle richieste fatte.
-\item Gestire i login degli utenti: questo viene fatto utilizzando una semplice tabella che memorizza indirizzo IP e nome utente.
+\item Gestire i login degli utenti: questo viene fatto utilizzando una semplice tabella che memorizza indirizzo IP e nome utente. Questo approccio semplifica anche le richieste POST fatte dalle altre pagine: a queste non serve mandare un nome utente, dato che il nome utente si può subito trovare usando l'indirizzo IP. È da notare che un sistema di login così, anche se semplice, non è molto sicuro: un sistema fatto bene dovrebbe anche criptare le password.
+\item Fare il log delle richieste fatte: queste vengono scritte su file di log specifici, che si possono trovare nella directory \textit{files}.
 \end{itemize}
 
 \section{Sito}
