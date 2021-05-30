@@ -2,3 +2,7 @@ __pycache__
 files/requests_get.txt
 files/requests_post.txt
 /*.html
+*.log
+*.aux
+*.synctex.gz
+*.pdf

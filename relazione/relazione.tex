@@ -8,8 +8,8 @@
 \usepackage[margin=0.5in]{geometry}
 \usepackage{scrextend}
 
-\title{Whatever}
-\subtitle{Progetto di Reti}
+\title{Progetto di Reti \\
+\large Traccia n° 2}
 \author{Christian Ricci}
 \date{\today}
 
@@ -88,7 +88,7 @@ Infine, un'altra funziona, chiamata \texttt{load\_page\_cached}, viene usata per
 
 Il modulo del database implementa un database molto semplice per gli utenti e i loro dati.
 
-L'approccio che si è utilizzato è di usare un file per contenere i dati degli utenti, che viene letto quando il server viene fatto partire, e viene scritto sia quando viene fatto un aggiornamento alla struttura dati nel programma, sia quando il server viene chiuso. La struttura dati per il database è una semplice classe, chiamata \textt{UserDatabase}, che eredita da una classe built-in di Python, \texttt{dict}, e che offre un metodo per salvare il database su file. Il database quindi opera come un dizionario.
+L'approccio che si è utilizzato è di usare un file per contenere i dati degli utenti, che viene letto quando il server viene fatto partire, e viene scritto sia quando viene fatto un aggiornamento alla struttura dati nel programma, sia quando il server viene chiuso. La struttura dati per il database è una semplice classe, chiamata \texttt{UserDatabase}, che eredita da una classe built-in di Python, \texttt{dict}, e che offre un metodo per salvare il database su file. Il database quindi opera come un dizionario.
 
 Nel modulo del database si possono anche trovare informazioni sulle armi. Dato che queste informazioni sono read-only, non c'è bisogno di avere una gestione avanzata e quindi si è optato per un semplice array.
 
