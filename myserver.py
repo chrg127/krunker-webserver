@@ -128,9 +128,9 @@ class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         # Send back whatever the handler returned.
         self.send_response(200)
+        self.send_header("Content-type", "text/html")
         self.end_headers()
         self.wfile.write(bytes(output, "utf-8"))
-
 
 def start_server():
     # Use ThreadingTCPServer to handle multiple connections.
