@@ -170,13 +170,14 @@ def start_server():
         <td>{}</td>
         <td><img src="{}" alt=gunpic></td>
         <td>Costo: {}</td>
+        <td>Rarita: {}</td>
         <td>
             <form action="" method="post">
                 <button type="submit" name="gun" value="{}">Compra</button>
             </form>
         </td>
     </tr>
-            """.format(gun.name, gun.image_path, gun.cost, i)
+            """.format(gun.name, gun.image_path, gun.cost, gun.rank, i)
         res += "</table>"
         return res
 

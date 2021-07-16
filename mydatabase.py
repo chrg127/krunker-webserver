@@ -28,11 +28,22 @@ guntab = [
     Gun("Akimbo Uzi",     IMAGEDIR + "akimbo.png",        50,       Rank.COMMON),
     Gun("Knife",          IMAGEDIR + "knife.png",         25,       Rank.COMMON),
     Gun("Machine Gun",    IMAGEDIR + "machinegun.png",    100,      Rank.COMMON),
-    Gun("Pistol",         IMAGEDIR + "pistol.png",        10000,    Rank.LEGEND),
+    Gun("Pistol",         IMAGEDIR + "pistol.png",        100000,   Rank.LEGEND),
     Gun("Revolver",       IMAGEDIR + "revolver.png",      150,      Rank.COMMON),
     Gun("Assault Rifle",  IMAGEDIR + "rifle.png",         200,      Rank.COMMON),
     Gun("Shotgun",        IMAGEDIR + "shotgun.png",       300,      Rank.COMMON),
     Gun("Sniper Rifle",   IMAGEDIR + "sniper.png",        500,      Rank.COMMON),
+    Gun("Autumn",         IMAGEDIR + "autumn.png",        1000,     Rank.RARE),
+    Gun("Danger",         IMAGEDIR + "danger.png",        1200,     Rank.RARE),
+    Gun("Illusion",       IMAGEDIR + "illusion.png",      900,      Rank.RARE),
+    Gun("Koj",            IMAGEDIR + "koj.png",           1500,     Rank.RARE),
+    Gun("Overgrown",      IMAGEDIR + "overgrown.png",     1300,     Rank.RARE),
+    Gun("Pirate",         IMAGEDIR + "pirate.png",        1500,     Rank.RARE),
+    Gun("Stormy",         IMAGEDIR + "stormy.png",        1000,     Rank.RARE),
+    Gun("Swamper",        IMAGEDIR + "swamper.png",       1800,     Rank.RARE),
+    Gun("Tortobe",        IMAGEDIR + "tortobe.png",       2000,     Rank.EPIC),
+    Gun("Love",           IMAGEDIR + "love.png",          3000,     Rank.EPIC),
+    Gun("Dungeon Rifle",  IMAGEDIR + "dungeon_rifle.png", 5000,     Rank.EPIC),
 ]
 
 class UserDatabase(dict):
@@ -47,7 +58,6 @@ class UserDatabase(dict):
             for line in f:
                 user, password, kr, spin, gunstr = line.strip().split('=', 4)
                 userinfo = UserInfo(user, password, int(kr), parse_bool(spin), parse_guns(gunstr))
-                print(userinfo)
                 self.__setitem__(user, userinfo)
 
     def write(self):
@@ -73,5 +83,4 @@ def random_gun(blacklist):
         return -1, None
     gunid = valid_ids[random.randrange(len(valid_ids))]
     return gunid, guntab[gunid]
-
 
