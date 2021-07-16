@@ -1,26 +1,4 @@
-<script>
-    function spin() {
-        rank = Math.floor(Math.random() * 4)
-        num_guns = 0
-        if (rank === 0) {
-            num_gun = 7
-        } else if (rank === 1) {
-            num_gun = 0
-        } else if (rank === 2) {
-            num_gun = 0
-        } else if (rank === 3) {
-            num_gun = 1
-        }
-        gun = Math.floor(Math.random() * num_gun)
-        var url = "/spinner.html"
-        var params = "rank=" + num
-        var xhr = new XMLHttpRequest()
-        xhr.open("POST", url, true);
-        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-        xhr.send(params);
-    }
-</script>
-
 <image src="images/spinner.png">
-<button onclick="spin()">SPIN</button>
-<p id="spinres"></p>
+<form method="POST">
+    <input type="submit" value="SPIN">
+</form>

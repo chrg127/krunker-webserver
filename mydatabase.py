@@ -1,11 +1,13 @@
 from dataclasses import dataclass
 import enum
+import random
 
 @dataclass
 class UserInfo:
     name: str
     password: str
     kr: int
+    freespin: bool
     guns: list
 
 class Rank(enum.Enum):
@@ -40,17 +42,19 @@ class UserDatabase(dict):
             if gunstr == "":
                 return []
             return [int(gun_id) for gun_id in gunstr.split(',')]
+        def parse_bool(s): return False if s == "False" else True
         with open(pathname) as f:
             for line in f:
-                user, password, kr, gunstr = line.strip().split('=', 4)
-                userinfo = UserInfo(user, password, int(kr), parse_guns(gunstr))
+                user, password, kr, spin, gunstr = line.strip().split('=', 4)
+                userinfo = UserInfo(user, password, int(kr), parse_bool(spin), parse_guns(gunstr))
+                print(userinfo)
                 self.__setitem__(user, userinfo)
 
     def write(self):
         with open(self.pathname, "w") as out:
             for key in self.__iter__():
                 user = self.__getitem__(key)
-                out.write(user.name + '=' + user.password + '=' + str(user.kr) + '=')
+                out.write(user.name + '=' + user.password + '=' + str(user.kr) + '=' + str(user.freespin) + '=')
                 if len(user.guns) != 0:
                     for i in range(0, len(user.guns) - 1):
                         out.write(str(user.guns[i]) + ',')
@@ -62,4 +66,12 @@ class UserDatabase(dict):
 
     def __setitem__(self, key, val):
         dict.__setitem__(self, key, val)
+
+def random_gun(blacklist):
+    valid_ids = list(set(range(0, len(guntab))) - set(blacklist))
+    if len(valid_ids) == 0:
+        return -1, None
+    gunid = valid_ids[random.randrange(len(valid_ids))]
+    return gunid, guntab[gunid]
+
 

@@ -75,8 +75,17 @@ class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
         return mysite.load_page_cached("logoutreply.html")
 
     def spinner_handler(self, content):
-        print(content)
-        return ""
+        user     = self.logged_users[self.client_address[0]]
+        userinfo = user_db[user.name]
+        if userinfo.freespin:
+            return "Free spin fallito. Hai gia fatto il tuo free spin!<br>" + mysite.load_page_cached("spinreply.html")
+        gunid, gun = mydatabase.random_gun(userinfo.guns)
+        if gunid == -1:
+            return "Free spin fallito. Hai gia tutte le armi!<br>" + mysite.load_page_cached("spinreply.html")
+        userinfo.guns.append(gunid)
+        userinfo.freespin = True
+        msg_ok = """Hai trovato la {}!<br>Rarita: {}<br><img src="{}" alt=gunpic>""".format(gun.name, gun.rank, gun.image_path)
+        return msg_ok + mysite.load_page_cached("spinreply.html")
 
     post_handlers = {
         "/login.html" : login_handler,
