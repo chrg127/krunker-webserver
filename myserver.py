@@ -74,11 +74,16 @@ class StoreRequestHandler(http.server.SimpleHTTPRequestHandler):
         del self.logged_users[ipaddr]
         return mysite.load_page_cached("logoutreply.html")
 
+    def spinner_handler(self, content):
+        print(content)
+        return ""
+
     post_handlers = {
         "/login.html" : login_handler,
         "/getkr.html" : kr_handler,
         "/shop.html"  : shop_handler,
         "/logout.html" : logout_handler,
+        "/spinner.html" : spinner_handler,
     }
 
     # Creates a dynamic page. Assumes pageurl is a valid url.

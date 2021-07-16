@@ -37,6 +37,7 @@ pagetab = {
     "login.html"    : Page("Login",     PAGE_DIR + "login.html",    None,                         PageAccess.GUEST_ONLY),
     "getkr.html"    : Page("Gioca",     None,                       PAGE_DIR + "getkr.html",      PageAccess.USER_ONLY),
     "shop.html"     : Page("Shop",      None,                       PAGE_DIR + "shop.html",       PageAccess.USER_ONLY),
+    "spinner.html"  : Page("Free Spin", None,                       PAGE_DIR + "spinner.html",    PageAccess.USER_ONLY),
     "stats.html"    : Page("Statistiche", None,                     PAGE_DIR + "stats.html",      PageAccess.USER_ONLY),
     "logout.html"   : Page("Logout",    None,                       PAGE_DIR + "logout.html",     PageAccess.USER_ONLY),
 }
