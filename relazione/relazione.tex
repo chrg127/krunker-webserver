@@ -22,8 +22,9 @@
 Il progetto consiste in un web server fatto per uno store immaginario, basato sul gioco online \textit{Krunker.io}. Gli utenti che si connettono al sito possono: 
 \begin{itemize}
 \item Collezionare \textit{KR}, la moneta immaginaria del gioco;
-\item Possono comprare nuove armi del gioco usando i KR;
-\item Possono vedere le loro statistiche (KR e armi già comprate).
+\item Comprare nuove armi del gioco usando i KR;
+\item Vedere le loro statistiche (KR e armi già comprate);
+\item Tentare la loro fortuna e vincere un'arma in regalo con il \textit{free spin};
 \end{itemize}
 
 Il web server ha anche un sistema per servire pagine dinamiche, un sistema di autenticazione degli utenti e un concetto molto semplice di sessione.
@@ -46,10 +47,25 @@ Il web server ha anche un sistema per servire pagine dinamiche, un sistema di au
 
 Prima di vedere i servizi del sito, gli utenti dovranno fare il login. I servizi che il sito mette a disposizione si possono trovare tutti nella \textit{sidebar} e sono i seguenti:
 \begin{itemize}
-\item Gioca: qui è dove gli utenti possono giocare e collezionare più KR. Normalmente in una pagina del genere ci dovrebbe essere un gioco completo; dato che lo scopo principale del progetto non è creare un gioco, ma bensì creare un web server, si è optato per una semplice pagina con un bottone. Il bottone manda una richiesta POST al server, in cui nel contenuto si potrà trovare il numero di KR, generato casualmente, da aggiungere al numero di KR collezionati dall'utente.
-\item Shop: questo è lo \textit{store} del sito: qui gli utenti possono comprare le armi con i KR che hanno collezionato. Per ogni arma c'è un bottone apposito per comprarla: il bottone manda una richiesta POST al server, con un contenuto che sarà semplicemente l'ID dell'arma. Il server andrà a guardare se l'utente ha abbastanza KR e non ha già comprato l'arma; quindi, se è tutto andato a buon fine, scriverà in un database l'acquisto effettuato e e il nuovo ammontare di KR per l'utente.
-\item Statistiche: in questa pagina ogni utente troverà le proprie statistiche, che riguardano l'ammontare di KR e le armi già comprate. Tutte queste informazioni vengono prelevate dal server ogni volta che arriva una richiesta GET per questa pagina.
+\item \textbf{Gioca}: qui è dove gli utenti possono giocare e collezionare più KR. Normalmente in una pagina del genere ci dovrebbe essere un gioco completo; dato che lo scopo principale del progetto non è creare un gioco, ma bensì creare un web server, si è optato per una semplice pagina con un bottone. Il bottone manda una richiesta POST al server, in cui nel contenuto si potrà trovare il numero di KR, generato casualmente, da aggiungere al numero di KR collezionati dall'utente.
+\item \textbf{Shop}: questo è lo \textit{store} del sito: qui gli utenti possono comprare le armi con i KR che hanno collezionato. Per ogni arma c'è un bottone apposito per comprarla: il bottone manda una richiesta POST al server, con un contenuto che sarà semplicemente l'ID dell'arma. Il server andrà a guardare se l'utente ha abbastanza KR e non ha già comprato l'arma; quindi, se è tutto andato a buon fine, scriverà in un database l'acquisto effettuato e e il nuovo ammontare di KR per l'utente.
+\item \textbf{Statistiche}: in questa pagina ogni utente troverà le proprie statistiche, che riguardano l'ammontare di KR e le armi già comprate. Tutte queste informazioni vengono prelevate dal server ogni volta che arriva una richiesta GET per questa pagina.
+\item \textbf{Free spin}: qui si può giocare al minigioco del free spin, dove un utente può tentare la sua fortuna e vincere un'arma in regalo senza pagare i KR relativi. Da notare che ad ogni arma è associata una rarità: una rarità più alta equivale ad una minor possibilità di vincere quell'arma. Ogni utente ha a disposizione un solo free spin, dopodichè non si potrà più giocare.
 \end{itemize}
+
+\begin{figure}[h]
+\centering{}
+\includegraphics[width=\textwidth]{shop.png}
+\caption{Lo shop del sito, in cui gli utenti possono comprare le armi.}
+\label{img:home_user}
+\end{figure}
+
+\begin{figure}[h]
+\centering{}
+\includegraphics[width=\textwidth]{shop.png}
+\caption{Il free spin. Un utente ha a disposizione una sola chance.}
+\label{img:home_user}
+\end{figure}
 
 Nella \textit{sidebar} si possono anche trovare un link ad un PDF con alcune informazioni sul sito e un link per le pagine di login/logout. Anche le pagine di login/logout mandano una richiesta POST al server: anche se forse per le altre pagine bastava fare una richiesta GET, per il login è necessario fare richieste POST, dato che con le GET le informazioni sulla password verrebbero messe in chiaro.
 
